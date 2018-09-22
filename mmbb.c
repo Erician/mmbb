@@ -106,7 +106,6 @@ void* worker(void *args)
     gettimeofday(&endtime, NULL);
 
     unsigned long long t;
-    double make_array_te;
     unsigned int long_size=sizeof(long);
     /* array size in bytes */
     unsigned long long array_bytes=asize*long_size;
@@ -135,12 +134,15 @@ void* worker(void *args)
         }
         //gettimeofday(&endtime, NULL);
     }
-
-    make_array_te=((double)(endtime.tv_sec*1000000-starttime.tv_sec*1000000+endtime.tv_usec-starttime.tv_usec))/1000000;
-    *(((Args*)args)->make_array_te) = make_array_te;
-
+    *(((Args*)args)->make_array_te) = 0;
+    *(((Args*)args)->make_array_te) += ((double)(endtime.tv_sec*1000000-starttime.tv_sec*1000000+endtime.tv_usec-starttime.tv_usec))/1000000;
+    /* timer starts */
+    gettimeofday(&starttime, NULL);
     free(a);
     free(b);
+    /* timer stops */
+    gettimeofday(&endtime, NULL);
+    *(((Args*)args)->make_array_te) += ((double)(endtime.tv_sec*1000000-starttime.tv_sec*1000000+endtime.tv_usec-starttime.tv_usec))/1000000;
 }
 
 /* ------------------------------------------------------ */
@@ -339,14 +341,15 @@ int main(int argc, char **argv)
                 for(j=0; j < nt; j++){
                     make_array_te_sum += make_array_te_array[j];
                 }
-                te = te- make_array_te_sum/nt;
+                printf("%f\n", make_array_te_sum);
+                te = te - make_array_te_sum/nt;
                 te_sum += te;
                 printf("%d\t", i);
-                printout(te, mt, testno);
+                printout(te/nt, mt, testno);
             }
             if(showavg) {
                 printf("AVG\t");
-                printout(te_sum/nr_loops, mt, testno);
+                printout(te_sum/nr_loops/nt, mt, testno);
             }
         }
     }
